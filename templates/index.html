@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <!-- Add Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+
+<body>
+  <div class="container">
+    <h2 class="mt-4 mb-4">AI TECH TEAM LOCAL APP</h2>
+
+    <!-- The Modal -->
+    <div class="modal" id="myModal">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <!-- Modal Header -->
+          <div class="modal-header">
+            <h4 class="modal-title">Scraping Started</h4>
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+          </div>
+          <!-- Modal body -->
+          <div class="modal-body">
+            Scraping started! Please check your 'output' folder to ensure the CSV file has been created correctly. Once
+            confirmed, please refresh the page.<br><br>
+            スクレイピングが開始されました！CSVファイルが正しく作成されていることを確認するために、'output'フォルダを確認してください。確認できたら、ページをリフレッシュしてください。
+          </div>
+          <!-- Modal footer -->
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <ul class="nav nav-tabs">
+      <li class="nav-item">
+        <a class="nav-link active" data-toggle="tab" href="#parse_pdf">Parse PDF</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#scrape_url">Scraping</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#webpilot_url">Webpilot</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#set_api_key">Embedding</a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" data-toggle="tab" href="#source_files">Sources</a>
+      </li>
+    </ul>
+
+    <div class="tab-content">
+      <div id="parse_pdf" class="container tab-pane active">
+        <!-- Parse PDF form goes here -->
+        <form action="/upload_pdf" method="post" enctype="multipart/form-data">
+          <div class="form-group">
+            <input type="file" class="form-control" name="pdf_file">
+          </div>
+          <button type="submit" class="btn btn-primary">Upload PDF</button>
+        </form>
+      </div>
+
+      <div id="scrape_url" class="container tab-pane fade">
+        <!-- Scrape URL form goes here -->
+        <form action="/run_spider" method="post" onsubmit="showPopup()">
+          <div class="form-group">
+            <input type="text" class="form-control" name="url" placeholder="Enter Sitemap or URL">
+          </div>
+          <div class="form-group">
+            <input type="text" class="form-control" name="output_file" placeholder="Enter output file name">
+          </div>
+          <div class="form-group">
+            <input type="text" class="form-control" name="site_name" placeholder="参照IDのタイトルからSite Nameを削除したい場合に入力して下さい">
+          </div>
+          <div class="form-group">
+            <textarea class="form-control" name="include_elements" rows="3"
+              placeholder="Enter elements to include (separated by comma, no spaces)">p,h1,h2,h3,h4,h5,h6,a,iframe,div,span,li</textarea>
+            <small class="form-text text-muted">XPath表現を入力してください。例： 'p', 'h1', 'div[@class="example"]' など</small>
+          </div>
+          <div class="form-group">
+            <textarea class="form-control" name="exclude_tags" rows="3"
+              placeholder="Enter tags to exclude (separated by comma, no spaces)">script,style,link,noscript,footer,aside</textarea>
+            <small class="form-text text-muted">HTMLのタグ名を入力してください。これらのタグが含まれる要素はすべて除外されます。例： 'script', 'aside'
+              など</small>
+          </div>
+          <div class="form-group">
+            <textarea class="form-control" name="exclude_elements" rows="3"
+              placeholder="Enter elements to exclude (separated by comma, no spaces)">span.chat-help-text</textarea>
+            <small class="form-text text-muted">CSSセレクタを入力してください。スペースは含めないでください。例： 'span.month.db.fs14'
+              のようにドットでつなげてください。</small>
+          </div>
+          <button type="submit" class="btn btn-primary">Run Spider</button>
+          <button type="button" class="btn btn-secondary" onclick="saveSettings('scrape_url')">Save Settings</button>
+          <button type="button" class="btn btn-secondary" onclick="loadSettings('scrape_url')">Load Settings</button>
+        </form>
+      </div>
+
+      <div id="webpilot_url" class="container tab-pane fade">
+        <!-- Scrape URL form goes here -->
+        <form action="/webpilot" method="post">
+          <div class="form-group">
+            <input type="text" class="form-control" name="webpilot_url" placeholder="Enter URL">
+          </div>
+          <div class="form-group">
+            <input type="text" class="form-control" name="webpilot_output" placeholder="Enter output file name">
+          </div>
+          <button type="submit" class="btn btn-primary">Run Webpilot</button>
+        </form>
+      </div>
+
+      <div id="set_api_key" class="container tab-pane fade">
+        <!-- Set API Key form goes here -->
+        <form action="/embedding" method="post">
+          <div class="form-group">
+            <input type="text" class="form-control" name="api_key" placeholder="Enter OpenAI API Key">
+          </div>
+          <button type="submit" class="btn btn-primary">Embedding</button>
+          <button type="button" class="btn btn-secondary" onclick="saveSettings('set_api_key')">Save API Key</button>
+          <button type="button" class="btn btn-secondary" onclick="loadSettings('set_api_key')">Load API Key</button>
+        </form>
+      </div>
+
+      <div id="source_files" class="container tab-pane fade">
+        <h3 class="mt-4">List of Your Sources</h3>
+        <ul id="file-list">
+          <!-- File list will be populated here by JavaScript -->
+        </ul>
+        <div id="csv-display">
+          <!-- CSV data will be populated here by JavaScript -->
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Add jQuery -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+  <!-- Add Bootstrap JavaScript -->
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
+
+  <script src="static/scripts.js"></script>
+
+</body>
+
+</html>
