@@ -120,8 +120,11 @@ window.onload = function () {
         });
 };
 
+let currentEditingFile = "";  // 編集中のファイル名を保存するグローバル変数
+
 // CSVファイルを表示
 function showFile(filename) {
+    currentEditingFile = filename;  // 編集中のファイル名を保存
     fetch('/get_csv_data', {
         method: 'POST',
         headers: {
@@ -131,7 +134,7 @@ function showFile(filename) {
     })
         .then(response => response.json())
         .then(data => {
-            var html = '<table class="table table-bordered">';
+            var html = '<table class="table csv-table">';
             // Add table headers
             html += '<tr>';
             html += '<th class="bg-primary text-white">title</th>';
@@ -155,6 +158,47 @@ function showFile(filename) {
             html += '</table>';
             html += '<button onclick="saveChanges()" class="btn btn-success">Save Changes</button>';
             document.getElementById('csv-display').innerHTML = html;
+        });
+}
+
+// 変更を保存
+function saveChanges() {
+    var table = document.querySelector('.csv-table');
+    var rows = Array.from(table.querySelectorAll('.data-row'));
+    var data = [];
+
+    // Skip the header row
+    for (var i = 0; i < rows.length; i += 2) {
+        var titleRow = rows[i];
+        var textRow = rows[i + 1];
+        var rowData = {};
+
+        var titleCell = titleRow.querySelector('input[type="text"]');
+        var urlCell = titleRow.querySelectorAll('input[type="text"]')[1];
+        var textCell = textRow.querySelector('textarea');
+
+        rowData['title'] = titleCell.value;
+        rowData['url'] = urlCell.value;
+        rowData['text'] = textCell.value;
+
+        data.push(rowData);
+    }
+
+    // Send the updated data to the server
+    fetch('/save_edited_data', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ data: data, filename: currentEditingFile }),  // 保存するファイル名を指定
+    })
+        .then(response => response.text())
+        .then(text => {
+            if (text === 'OK') {
+                alert('Changes saved successfully.');
+            } else {
+                alert('Failed to save changes.');
+            }
         });
 }
 

@@ -72,20 +72,14 @@ def get_csv_data():
     data = pd.read_csv('output/' + filename)
     return data.to_json(orient='records')
 
-@app.route('/update_csv_data', methods=['POST'])
-def update_csv_data():
-    updated_data = request.json['data']
-    filename = request.json['filename']
-    df = pd.DataFrame(updated_data)
-    df.to_csv('output/' + filename, index=False)
-    return jsonify(status='success')
-
 @app.route('/save_edited_data', methods=['POST'])
 def save_edited_data():
-  json_data = request.json
-  df = pd.DataFrame(json_data) 
-  df.to_csv('edited.csv', index=False)
-  return "OK"
+    json_data = request.json
+    data = json_data['data']
+    filename = json_data['filename']
+    df = pd.DataFrame(data)
+    df.to_csv(f'output/{filename}', index=False)
+    return "OK"
 
 @app.route('/delete_file', methods=['POST'])
 def delete_file():
