@@ -114,6 +114,20 @@ window.onload = function () {
                 tr.appendChild(td3);
 
                 table.appendChild(tr);
+
+                // Create a cell for the Add Row button
+                var td4 = document.createElement('td');
+                var addButton = document.createElement('button');
+                addButton.textContent = 'Add Row';
+                addButton.className = 'btn btn-sm btn-success'; // Add Bootstrap classes
+                addButton.onclick = async function () {
+                    await showFile(file);  // Show the file first and wait for it to complete
+                    addRow();  // Then add a new row
+                };
+                td4.appendChild(addButton);
+                tr.appendChild(td4);
+
+                table.appendChild(tr);
             });
 
             fileList.appendChild(table);
@@ -122,46 +136,45 @@ window.onload = function () {
 
 let currentEditingFile = "";  // 編集中のファイル名を保存するグローバル変数
 
-// CSVファイルを表示
-function showFile(filename) {
+// ソースCSVのCSVファイルを表示
+async function showFile(filename) {
     currentEditingFile = filename;  // 編集中のファイル名を保存
-    fetch('/get_csv_data', {
+    const response = await fetch('/get_csv_data', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify({ filename: filename }),
-    })
-        .then(response => response.json())
-        .then(data => {
-            var html = '<table class="table csv-table">';
-            // Add table headers
-            html += '<tr>';
-            html += '<th class="bg-primary text-white">title</th>';
-            html += '<th class="bg-primary text-white">url</th>';
-            html += '<th class="bg-primary text-white">Action</th>';
-            html += '</tr>';
-            html += '<tr>';
-            html += '<th colspan="3" class="bg-secondary text-white">text</th>';
-            html += '</tr>';
-            // Add table rows
-            data.forEach((row, rowIndex) => {
-                html += '<tr class="data-row">';
-                html += '<td><input type="text" value="' + row['title'] + '" size="30" class="form-control"></td>';
-                html += '<td><input type="text" value="' + row['url'] + '" size="30" class="form-control"></td>';
-                html += '<td><button onclick="deleteRow(this)" class="btn btn-danger">Delete</button></td>';
-                html += '</tr>';
-                html += '<tr class="data-row">';
-                html += '<td colspan="3"><textarea rows="4" cols="60" class="form-control">' + row['text'] + '</textarea></td>';
-                html += '</tr>';
-            });
-            html += '</table>';
-            html += '<button onclick="saveChanges()" class="btn btn-success">Save Changes</button>';
-            document.getElementById('csv-display').innerHTML = html;
-        });
+    });
+    const data = await response.json();
+
+    var html = '<table class="table csv-table">';
+    // Add table headers
+    html += '<tr>';
+    html += '<th class="bg-primary text-white">title</th>';
+    html += '<th class="bg-primary text-white">url</th>';
+    html += '<th class="bg-primary text-white">Action</th>';
+    html += '</tr>';
+    html += '<tr>';
+    html += '<th colspan="3" class="bg-secondary text-white">text</th>';
+    html += '</tr>';
+    // Add table rows
+    data.forEach((row, rowIndex) => {
+        html += '<tr class="data-row">';
+        html += '<td><input type="text" value="' + row['title'] + '" size="30" class="form-control"></td>';
+        html += '<td><input type="text" value="' + row['url'] + '" size="30" class="form-control"></td>';
+        html += '<td><button onclick="deleteRow(this)" class="btn btn-danger">Delete</button></td>';
+        html += '</tr>';
+        html += '<tr class="data-row">';
+        html += '<td colspan="3"><textarea rows="4" cols="60" class="form-control">' + row['text'] + '</textarea></td>';
+        html += '</tr>';
+    });
+    html += '</table>';
+    html += '<button onclick="saveChanges()" class="btn btn-success">Save Changes</button>';
+    document.getElementById('csv-display').innerHTML = html;
 }
 
-// 変更を保存
+// ソースCSVの変更を保存
 function saveChanges() {
     var table = document.querySelector('.csv-table');
     var rows = Array.from(table.querySelectorAll('.data-row'));
@@ -202,7 +215,30 @@ function saveChanges() {
         });
 }
 
-// 行を削除する関数
+// ソースCSVの行を追加する関数
+function addRow() {
+    var table = document.querySelector('.csv-table');
+    var newRow1 = document.createElement('tr');
+    var newRow2 = document.createElement('tr');
+
+    newRow1.className = "data-row";
+    newRow2.className = "data-row";
+
+    newRow1.innerHTML = `
+        <td><input type="text" value="" size="30" class="form-control"></td>
+        <td><input type="text" value="" size="30" class="form-control"></td>
+        <td><button onclick="deleteRow(this)" class="btn btn-danger">Delete</button></td>
+    `;
+
+    newRow2.innerHTML = `
+        <td colspan="3"><textarea rows="4" cols="60" class="form-control"></textarea></td>
+    `;
+
+    table.appendChild(newRow1);
+    table.appendChild(newRow2);
+}
+
+// ソースCSVの行を削除する関数
 function deleteRow(buttonElement) {
     var row = buttonElement.closest('.data-row');
     row.nextElementSibling.remove();  // Remove the corresponding 'text' row
