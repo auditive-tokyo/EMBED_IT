@@ -4,6 +4,7 @@ from pdfminer.converter import TextConverter
 from pdfminer.layout import LAParams
 from pdfminer.pdfpage import PDFPage
 from io import StringIO
+import os
 
 def pdf2csv(pdf_file, csv_file):
     with open(csv_file, 'w', newline='', encoding='utf-8') as file:
@@ -22,4 +23,4 @@ def pdf2csv(pdf_file, csv_file):
                 interpreter.process_page(page)
                 text = device.outfp.getvalue()  # StringIOオブジェクトからテキストを取得
 
-                writer.writerow([pdf_file, f"page{page_number}", text])
+                writer.writerow([os.path.basename(pdf_file), f"page{page_number}", text])

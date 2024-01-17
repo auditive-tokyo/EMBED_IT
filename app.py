@@ -50,7 +50,7 @@ def upload_pdf():
     file = request.files['pdf_file']
     if file.filename == '':
         return 'No selected file', 400
-    if file:
+    if file and file.filename:
         filename = secure_filename(file.filename)  # ファイル名を安全な形式に変換
         filepath = os.path.join('pdfs', filename)
         file.save(filepath)
@@ -68,15 +68,25 @@ def list_files():
 
 @app.route('/get_csv_data', methods=['POST'])
 def get_csv_data():
-    filename = request.json['filename']
-    data = pd.read_csv('output/' + filename)
-    return data.to_json(orient='records')
+    json_data = request.get_json(silent=True)
+    if json_data and 'filename' in json_data:
+        filename = json_data['filename']
+        data = pd.read_csv('output/' + filename)
+        return data.to_json(orient='records')
+    else:
+        return 'Invalid request', 400
 
 @app.route('/save_edited_data', methods=['POST'])
 def save_edited_data():
-    json_data = request.json
-    data = json_data['data']
-    filename = json_data['filename']
+    json_data = request.get_json()
+    if json_data is None:
+        return 'Invalid request', 400
+
+    data = json_data.get('data')
+    filename = json_data.get('filename')
+
+    if data is None or filename is None:
+        return 'Missing data or filename', 400
     df = pd.DataFrame(data)
     df.to_csv(f'output/{filename}', index=False)
     return "OK"
@@ -205,7 +215,7 @@ def run_spider_in_new_process(url, include_elements, exclude_tags, exclude_eleme
         spider.start_urls = [url]
 
     runner.crawl(spider, include_elements=include_elements, exclude_tags=exclude_tags, exclude_elements=exclude_elements)
-    reactor.run(installSignalHandlers=0)  # the script will block here until the crawling is finished
+    reactor.run(installSignalHandlers=0)  # type: ignore
 
 # スパイダーを別のプロセスで実行
 @app.route('/run_spider', methods=['POST'])

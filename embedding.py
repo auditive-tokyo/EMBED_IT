@@ -108,10 +108,10 @@ def save_vectors(embeddings, filename):
     vectors = [np.array(item["embedding"], dtype=np.float32) for item in embeddings]
 
     # Stack all vectors into one big NumPy array
-    vectors = np.vstack(vectors)
+    stacked_vectors = np.vstack(vectors)
 
     # Save the vectors to the local disk
-    np.save(filename, vectors)
+    np.save(filename, stacked_vectors)
 
 def remove_file(filename):
     # Check if the file exists and then remove it

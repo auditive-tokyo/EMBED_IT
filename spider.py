@@ -5,6 +5,7 @@ from items import MyItem
 import json
 import os
 import re
+from typing import List
 
 class BaseSpider(Spider):
     def __init__(self, exclude_tags=None, exclude_elements=None, *args, **kwargs):
@@ -51,13 +52,13 @@ class BaseSpider(Spider):
 
 class MySpider(BaseSpider):
     name = 'myspider'
-    start_urls = []
+    start_urls: List[str] = []
     custom_settings = {
         'FEED_EXPORT_FIELDS': ['title', 'url', 'text'],
     }
     
-    def __init__(self, include_elements=None, exclude_tags=None, exclude_elements=None, *args, **kwargs):
-        super(MySpider, self).__init__(exclude_tags=exclude_tags, exclude_elements=exclude_elements, *args, **kwargs)
+    def __init__(self, include_elements=None, *args, **kwargs):
+        super(MySpider, self).__init__(*args, **kwargs)
         self.include_elements = include_elements
 
     def parse(self, response):
@@ -93,14 +94,14 @@ class MySpider(BaseSpider):
 
 class MySitemapSpider(SitemapSpider, BaseSpider):
     name = 'mysitemapsipder'
-    sitemap_urls = []
+    sitemap_urls: List[str] = []
     custom_settings = {
         'FEED_EXPORT_FIELDS': ['title', 'url', 'text'],
     }
 
     def __init__(self, include_elements=None, exclude_tags=None, exclude_elements=None, *args, **kwargs):
         SitemapSpider.__init__(self, *args, **kwargs)
-        BaseSpider.__init__(self, exclude_tags=exclude_tags, exclude_elements=exclude_elements, *args, **kwargs)
+        BaseSpider.__init__(self, exclude_tags=exclude_tags, exclude_elements=exclude_elements)
         self.include_elements = include_elements
 
     def parse(self, response):
