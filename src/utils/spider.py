@@ -1,7 +1,7 @@
 from scrapy.spiders import Spider, SitemapSpider
 from bs4 import BeautifulSoup
 from scrapy.http import TextResponse
-from items import MyItem
+from src.schema.items import MyItem
 import json
 import os
 import re

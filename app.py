@@ -5,10 +5,10 @@ from scrapy.utils.log import configure_logging
 from scrapy.utils.project import get_project_settings
 from twisted.internet import reactor
 from scrapy.settings import Settings
-from spider import MySpider, MySitemapSpider
-from pdf2csv import pdf2csv
-from webpilot import webpilot
-from embedding import load_api_key, process_csv_files, save_to_csv, save_to_json, load_json, create_embeddings, save_vectors, remove_file
+from src.utils.spider import MySpider, MySitemapSpider
+from src.services.pdf2csv import pdf2csv
+from src.services.webpilot import webpilot
+from src.services.embedding import load_api_key, process_csv_files, save_to_csv, save_to_json, load_json, create_embeddings, save_vectors, remove_file
 import json
 import os
 from multiprocessing import Process

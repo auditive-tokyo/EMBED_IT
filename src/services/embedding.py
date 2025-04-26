@@ -1,26 +1,30 @@
 import os
 import json
-import openai
 import pandas as pd
 import csv
 import numpy as np
 import re
+from openai import OpenAI  # Updated import
+
+client = None  # Global client variable
 
 def load_api_key():
+    global client
     # Check if settings.json exists
     if os.path.exists('settings.json'):
         # Load settings
         with open('settings.json', 'r') as f:
             settings = json.load(f)
-        # Set OpenAI API key
-        openai.api_key = settings.get('set_api_key', {}).get('api_key', '')
+        # Initialize OpenAI client
+        api_key = settings.get('set_api_key', {}).get('api_key', '')
+        client = OpenAI(api_key=api_key)
     else:
         # Create settings.json with empty settings
         settings = {'set_api_key': {'api_key': ''}}
         with open('settings.json', 'w') as f:
             json.dump(settings, f)
-        # Set OpenAI API key
-        openai.api_key = ''
+        # Initialize with empty key
+        client = OpenAI(api_key='')
 
 def process_csv_files(folder_path):
     csv_files = [f for f in os.listdir(folder_path) if f.endswith('.csv')]
@@ -90,13 +94,13 @@ def create_embeddings(data):
         # Combine the title and the text
         combined_input = f"{title} ||| {text}"
 
-        # Create an embedding
-        response = openai.Embedding.create(
-          model="text-embedding-ada-002",
-          input=combined_input
+        # Create an embedding using new client approach
+        response = client.embeddings.create(
+            model="text-embedding-3-large",
+            input=combined_input
         )
 
-        embedding = response['data'][0]['embedding']
+        embedding = response.data[0].embedding
 
         # Save the embedding
         embeddings.append({'embedding': embedding})
