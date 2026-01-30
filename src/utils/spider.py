@@ -2,6 +2,7 @@ from scrapy.spiders import Spider, SitemapSpider
 from bs4 import BeautifulSoup
 from scrapy.http import TextResponse
 from src.schema.items import MyItem
+from src.config import SETTINGS_JSON
 import json
 import os
 from typing import List
@@ -34,8 +35,8 @@ class BaseSpider(Spider):
                 title = soup.title.string if soup.title else 'No title'
                 
             # Remove site_name from title if it exists in settings.json
-            if os.path.exists('settings.json'):
-                with open('settings.json', 'r') as f:
+            if os.path.exists(SETTINGS_JSON):
+                with open(SETTINGS_JSON, 'r') as f:
                     settings = json.load(f)
                     site_name = settings.get('scrape_url', {}).get('site_name', '')
                     if site_name and site_name in title:

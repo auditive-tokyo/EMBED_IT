@@ -10,6 +10,7 @@ from src.utils.spider import MySpider, MySitemapSpider
 from src.services.pdf2csv import pdf2csv
 from src.services.webpilot import webpilot
 from src.services.embedding import load_api_key, process_csv_files, save_to_csv, save_to_json, load_json, create_embeddings, save_vectors, remove_file
+from src.config import OUTPUT_DIR, FOR_CHECKING_CSV, REFERENCE_JSON, EMBEDDING_FILES_ZIP, SETTINGS_JSON, VECTORS_NPY
 import json
 import os
 from multiprocessing import Process
@@ -17,13 +18,6 @@ from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
 import zipfile
 import pandas as pd
-
-OUTPUT_DIR = 'output/'
-FOR_CHECKING_CSV = 'for_cheking.csv'
-REFERENCE_JSON = 'reference.json'
-EMBEDDING_FILES_ZIP = 'embedding_files.zip'
-SETTINGS_JSON = 'settings.json'
-VECTORS_NPY = 'vectors.npy'
 
 app = Flask(__name__)
 csrf = CSRFProtect()

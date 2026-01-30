@@ -5,15 +5,16 @@ import csv
 import numpy as np
 import re
 from openai import OpenAI  # Updated import
+from src.config import SETTINGS_JSON
 
 client = None  # Global client variable
 
 def load_api_key():
     global client
     # Check if settings.json exists
-    if os.path.exists('settings.json'):
+    if os.path.exists(SETTINGS_JSON):
         # Load settings
-        with open('settings.json', 'r') as f:
+        with open(SETTINGS_JSON, 'r') as f:
             settings = json.load(f)
         # Initialize OpenAI client
         api_key = settings.get('set_api_key', {}).get('api_key', '')
@@ -21,7 +22,7 @@ def load_api_key():
     else:
         # Create settings.json with empty settings
         settings = {'set_api_key': {'api_key': ''}}
-        with open('settings.json', 'w') as f:
+        with open(SETTINGS_JSON, 'w') as f:
             json.dump(settings, f)
         # Initialize with empty key
         client = OpenAI(api_key='')
