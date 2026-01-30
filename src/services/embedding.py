@@ -31,8 +31,8 @@ def process_csv_files(folder_path):
     csv_files = [f for f in os.listdir(folder_path) if f.endswith('.csv')]
     
     # 先頭に数字があるファイルとないファイルに分ける
-    numbered_files = [f for f in csv_files if re.split('-|_|\\.', f)[0].isdigit()]
-    non_numbered_files = [f for f in csv_files if not re.split('-|_|\\.', f)[0].isdigit()]
+    numbered_files = [f for f in csv_files if re.split(r'[-_.]', f)[0].isdigit()]
+    non_numbered_files = [f for f in csv_files if not re.split(r'[-_.]', f)[0].isdigit()]
 
     # 数字があるファイルは逆ソートして後に読み込む
     non_numbered_files = sorted(non_numbered_files)
