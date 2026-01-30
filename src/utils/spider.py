@@ -4,7 +4,6 @@ from scrapy.http import TextResponse
 from src.schema.items import MyItem
 import json
 import os
-import re
 from typing import List
 
 class BaseSpider(Spider):
@@ -50,33 +49,21 @@ class BaseSpider(Spider):
             
             return response, title
         else:
-            print(f'Skipped non-text response: {response.url}\n')            
+            print(f'Skipped non-text response: {response.url}\n')
+            return None, None
 
-class MySpider(BaseSpider):
-    name = 'myspider'
-    start_urls: List[str] = []
-    custom_settings = {
-        'FEED_EXPORT_FIELDS': ['title', 'url', 'text'],
-    }
-    
-    def __init__(self, include_elements=None, *args, **kwargs):
-        super(MySpider, self).__init__(*args, **kwargs)
-        self.include_elements = include_elements
-
-    def parse(self, response):
-        response, title = super().parse(response)
+    def _extract_item(self, response, title, include_elements):
+        """Common helper method to extract item from response."""
         if response is None and title is None:
-            return
-            
-        # ...
-            
+            return None
+
         # Check if the user input is in XPath format
-        if "[" in self.include_elements and "]" in self.include_elements and self.include_elements.startswith('//') and self.include_elements.endswith('//text()'):
+        if "[" in include_elements and "]" in include_elements and include_elements.startswith('//') and include_elements.endswith('//text()'):
             # If it's in complete XPath format, use it directly
-            xpath_expr = self.include_elements
+            xpath_expr = include_elements
         else:
             # If it's not in complete XPath format, convert it to XPath format
-            xpath_expr = ' | '.join(f'//{el.strip()}//text()' for el in self.include_elements.split(','))
+            xpath_expr = ' | '.join(f'//{el.strip()}//text()' for el in include_elements.split(','))
 
         print(f"XPath expression in parse: {xpath_expr}")
 
@@ -91,8 +78,22 @@ class MySpider(BaseSpider):
         item['url'] = response.url
         item['text'] = text
 
-        # Return the item
         return item
+
+class MySpider(BaseSpider):
+    name = 'myspider'
+    start_urls: List[str] = []
+    custom_settings = {
+        'FEED_EXPORT_FIELDS': ['title', 'url', 'text'],
+    }
+    
+    def __init__(self, include_elements=None, *args, **kwargs):
+        super(MySpider, self).__init__(*args, **kwargs)
+        self.include_elements = include_elements
+
+    def parse(self, response):
+        response, title = super().parse(response)
+        return self._extract_item(response, title, self.include_elements)
 
 class MySitemapSpider(SitemapSpider, BaseSpider):
     name = 'mysitemapsipder'
@@ -108,31 +109,4 @@ class MySitemapSpider(SitemapSpider, BaseSpider):
 
     def parse(self, response):
         response, title = super().parse(response)
-        if response is None and title is None:
-            return
-
-        # ...
-
-        # Check if the user input is in XPath format
-        if "[" in self.include_elements and "]" in self.include_elements and self.include_elements.startswith('//') and self.include_elements.endswith('//text()'):
-            # If it's in complete XPath format, use it directly
-            xpath_expr = self.include_elements
-        else:
-            # If it's not in complete XPath format, convert it to XPath format
-            xpath_expr = ' | '.join(f'//{el.strip()}//text()' for el in self.include_elements.split(','))
-
-        print(f"XPath expression in parse: {xpath_expr}")
-
-        # Extract the text
-        text = response.xpath(xpath_expr).getall()
-        text = ' '.join(text)
-        text = text.replace('\n', ' ')  # Remove newlines
-
-        # Create an item and populate it with data
-        item = MyItem()
-        item['title'] = title
-        item['url'] = response.url
-        item['text'] = text
-
-        # Return the item
-        return item
+        return self._extract_item(response, title, self.include_elements)
