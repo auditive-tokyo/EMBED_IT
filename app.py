@@ -17,6 +17,13 @@ from scrapy.utils.project import get_project_settings
 import zipfile
 import pandas as pd
 
+OUTPUT_DIR = 'output/'
+FOR_CHECKING_CSV = 'for_cheking.csv'
+REFERENCE_JSON = 'reference.json'
+EMBEDDING_FILES_ZIP = 'embedding_files.zip'
+SETTINGS_JSON = 'settings.json'
+VECTORS_NPY = 'vectors.npy'
+
 app = Flask(__name__)
 
 class FlaskWebInterface:
@@ -63,7 +70,7 @@ def upload_pdf():
         
 @app.route('/list_files', methods=['GET'])
 def list_files():
-    files = os.listdir('output/')
+    files = os.listdir(OUTPUT_DIR)
     return jsonify(files=files)
 
 @app.route('/get_csv_data', methods=['POST'])
@@ -71,7 +78,7 @@ def get_csv_data():
     json_data = request.get_json(silent=True)
     if json_data and 'filename' in json_data:
         filename = json_data['filename']
-        data = pd.read_csv('output/' + filename)
+        data = pd.read_csv(OUTPUT_DIR + filename)
         return data.to_json(orient='records')
     else:
         return 'Invalid request', 400
@@ -88,14 +95,14 @@ def save_edited_data():
     if data is None or filename is None:
         return 'Missing data or filename', 400
     df = pd.DataFrame(data)
-    df.to_csv(f'output/{filename}', index=False)
+    df.to_csv(f'{OUTPUT_DIR}{filename}', index=False)
     return "OK"
 
 @app.route('/delete_file', methods=['POST'])
 def delete_file():
     data = request.get_json()
     filename = data.get('filename')
-    file_path = os.path.join('output/', filename)
+    file_path = os.path.join(OUTPUT_DIR, filename)
     if os.path.exists(file_path):
         os.remove(file_path)
     return jsonify(success=True)
@@ -106,48 +113,47 @@ def run_embedding():
     load_api_key()
 
     # Process CSV files and merge dataframes
-    folder_path = 'output/'
-    df = process_csv_files(folder_path)
+    df = process_csv_files(OUTPUT_DIR)
 
     # Save the merged dataframe to a CSV file for checking
-    save_to_csv(df, 'for_cheking.csv')
+    save_to_csv(df, FOR_CHECKING_CSV)
 
     # Convert the merged dataframe to JSON and save
-    save_to_json(df, 'reference.json')
+    save_to_json(df, REFERENCE_JSON)
 
     # Load the text from the local JSON file
-    data = load_json('reference.json')
+    data = load_json(REFERENCE_JSON)
 
     # Create embeddings
     embeddings = create_embeddings(data)
 
     # Save the vectors to the local disk
-    save_vectors(embeddings, "vectors.npy")
+    save_vectors(embeddings, VECTORS_NPY)
 
     # Remove the file if it exists
     remove_file('embedded.json')
 
     # Create a ZIP file
-    with zipfile.ZipFile('embedding_files.zip', 'w') as zipf:
-        zipf.write('for_cheking.csv')
-        zipf.write('reference.json')
-        zipf.write('vectors.npy')
+    with zipfile.ZipFile(EMBEDDING_FILES_ZIP, 'w') as zipf:
+        zipf.write(FOR_CHECKING_CSV)
+        zipf.write(REFERENCE_JSON)
+        zipf.write(VECTORS_NPY)
         
     # Remove the original files after they have been added to the ZIP file
-    remove_file('for_cheking.csv')
-    remove_file('reference.json')
-    remove_file('vectors.npy')
+    remove_file(FOR_CHECKING_CSV)
+    remove_file(REFERENCE_JSON)
+    remove_file(VECTORS_NPY)
 
     # Send the ZIP file to the user
     @after_this_request
     def remove_zip_file(response):
         try:
-            os.remove('embedding_files.zip')
+            os.remove(EMBEDDING_FILES_ZIP)
         except Exception as error:
             app.logger.error("Error removing or closing downloaded file handle", error)
         return response
 
-    return send_file('embedding_files.zip', as_attachment=True)
+    return send_file(EMBEDDING_FILES_ZIP, as_attachment=True)
 
 @app.route('/save_settings', methods=['POST'])
 def save_settings():
@@ -155,8 +161,8 @@ def save_settings():
         new_settings = request.get_json()  # 新しい設定を取得
 
         # 既存の設定を読み込む
-        if os.path.exists('settings.json'):
-            with open('settings.json', 'r') as f:
+        if os.path.exists(SETTINGS_JSON):
+            with open(SETTINGS_JSON, 'r') as f:
                 existing_settings = json.load(f)
         else:
             existing_settings = {}
@@ -165,7 +171,7 @@ def save_settings():
         existing_settings.update(new_settings)
 
         # 設定をファイルに保存
-        with open('settings.json', 'w') as f:
+        with open(SETTINGS_JSON, 'w') as f:
             json.dump(existing_settings, f)
 
         return 'Settings saved.'
@@ -175,7 +181,7 @@ def save_settings():
 @app.route('/load_settings', methods=['GET'])
 def load_settings():
     try:
-        with open('settings.json', 'r') as f:
+        with open(SETTINGS_JSON, 'r') as f:
             settings = json.load(f)  # ファイルからJSONデータを読み込む
         return jsonify(settings)  # jsonifyを使用して安全にJSONレスポンスを返す
     except FileNotFoundError:
