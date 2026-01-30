@@ -41,7 +41,9 @@ class BaseSpider(Spider):
                     site_name = settings.get('scrape_url', {}).get('site_name', '')
                     if site_name and site_name in title:
                         title = title.replace(site_name, '').strip()
-                        title = re.sub(r'\s*[-|]\s*$', '', title)
+                        # Split into two steps to avoid catastrophic backtracking
+                        title = title.rstrip()
+                        title = re.sub(r'\s*[-|]$', '', title)
 
             # Convert the BeautifulSoup object back to a Scrapy Response
             response = TextResponse(url=response.url, body=str(soup), encoding='utf-8')

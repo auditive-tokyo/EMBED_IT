@@ -1,4 +1,5 @@
 from flask import Flask, request, render_template, send_file, jsonify, after_this_request
+from flask_wtf.csrf import CSRFProtect
 from werkzeug.utils import secure_filename
 from scrapy.crawler import CrawlerRunner
 from scrapy.utils.log import configure_logging
@@ -25,6 +26,8 @@ SETTINGS_JSON = 'settings.json'
 VECTORS_NPY = 'vectors.npy'
 
 app = Flask(__name__)
+csrf = CSRFProtect()
+csrf.init_app(app)
 
 class FlaskWebInterface:
 
