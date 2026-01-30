@@ -6,7 +6,7 @@ function showPopup() {
 
 // Save Settings
 function saveSettings(tab) {
-    var settings = {};
+    let settings = {};
     if (tab === 'scrape_url') {
         settings = {
             url: document.querySelector('#scrape_url input[name="url"]').value,
@@ -35,7 +35,7 @@ function loadSettings(tab) {
     fetch('/load_settings')
         .then(response => response.json())
         .then(allSettings => {
-            var settings = allSettings[tab];
+            const settings = allSettings[tab];
             if (tab === 'scrape_url') {
                 document.querySelector('#scrape_url input[name="url"]').value = settings.url;
                 document.querySelector('#scrape_url textarea[name="include_elements"]').value = settings.include_elements || '';
@@ -52,7 +52,7 @@ function loadSettings(tab) {
 // Memorize which tab you were at
 $(function () {
     // ページが読み込まれたときにローカルストレージから現在のタブを読み込む
-    var currentTab = localStorage.getItem('currentTab');
+    const currentTab = localStorage.getItem('currentTab');
     if (currentTab) {
         $('.nav-tabs a[href="' + currentTab + '"]').tab('show');
     } else {
@@ -73,27 +73,27 @@ window.onload = function () {
         .then(response => response.json())
         .then(data => {
             // Get the file list element
-            var fileList = document.getElementById('file-list');
+            const fileList = document.getElementById('file-list');
 
             // Clear the file list
             fileList.innerHTML = '';
 
             // Create a table
-            var table = document.createElement('table');
+            const table = document.createElement('table');
             table.className = 'table'; // Add Bootstrap class
 
             // Add each file to the table
             data.files.forEach(file => {
-                var tr = document.createElement('tr');
+                const tr = document.createElement('tr');
 
                 // Create a cell for the file name
-                var td1 = document.createElement('td');
+                const td1 = document.createElement('td');
                 td1.textContent = file.replace('.csv', '');
                 tr.appendChild(td1);
 
                 // Create a cell for the show button
-                var td2 = document.createElement('td');
-                var showButton = document.createElement('button');
+                const td2 = document.createElement('td');
+                const showButton = document.createElement('button');
                 showButton.textContent = 'Show';
                 showButton.className = 'btn btn-sm btn-info'; // Add Bootstrap classes
                 showButton.onclick = function () {
@@ -103,8 +103,8 @@ window.onload = function () {
                 tr.appendChild(td2);
 
                 // Create a cell for the delete button
-                var td3 = document.createElement('td');
-                var deleteButton = document.createElement('button');
+                const td3 = document.createElement('td');
+                const deleteButton = document.createElement('button');
                 deleteButton.textContent = 'Delete';
                 deleteButton.className = 'btn btn-sm btn-danger'; // Add Bootstrap classes
                 deleteButton.onclick = function () {
@@ -116,8 +116,8 @@ window.onload = function () {
                 table.appendChild(tr);
 
                 // Create a cell for the Add Row button
-                var td4 = document.createElement('td');
-                var addButton = document.createElement('button');
+                const td4 = document.createElement('td');
+                const addButton = document.createElement('button');
                 addButton.textContent = 'Add Row';
                 addButton.className = 'btn btn-sm btn-success'; // Add Bootstrap classes
                 addButton.onclick = async function () {
@@ -148,7 +148,7 @@ async function showFile(filename) {
     });
     const data = await response.json();
 
-    var html = '<table class="table csv-table">';
+    let html = '<table class="table csv-table">';
     // Add table headers
     html += '<tr>';
     html += '<th class="bg-primary text-white">title</th>';
@@ -176,19 +176,19 @@ async function showFile(filename) {
 
 // ソースCSVの変更を保存
 function saveChanges() {
-    var table = document.querySelector('.csv-table');
-    var rows = Array.from(table.querySelectorAll('.data-row'));
-    var data = [];
+    const table = document.querySelector('.csv-table');
+    const rows = Array.from(table.querySelectorAll('.data-row'));
+    const data = [];
 
     // Skip the header row
-    for (var i = 0; i < rows.length; i += 2) {
-        var titleRow = rows[i];
-        var textRow = rows[i + 1];
-        var rowData = {};
+    for (let i = 0; i < rows.length; i += 2) {
+        const titleRow = rows[i];
+        const textRow = rows[i + 1];
+        const rowData = {};
 
-        var titleCell = titleRow.querySelector('input[type="text"]');
-        var urlCell = titleRow.querySelectorAll('input[type="text"]')[1];
-        var textCell = textRow.querySelector('textarea');
+        const titleCell = titleRow.querySelector('input[type="text"]');
+        const urlCell = titleRow.querySelectorAll('input[type="text"]')[1];
+        const textCell = textRow.querySelector('textarea');
 
         rowData['title'] = titleCell.value;
         rowData['url'] = urlCell.value;
@@ -217,9 +217,9 @@ function saveChanges() {
 
 // ソースCSVの行を追加する関数
 function addRow() {
-    var table = document.querySelector('.csv-table');
-    var newRow1 = document.createElement('tr');
-    var newRow2 = document.createElement('tr');
+    const table = document.querySelector('.csv-table');
+    const newRow1 = document.createElement('tr');
+    const newRow2 = document.createElement('tr');
 
     newRow1.className = "data-row";
     newRow2.className = "data-row";
@@ -240,7 +240,7 @@ function addRow() {
 
 // ソースCSVの行を削除する関数
 function deleteRow(buttonElement) {
-    var row = buttonElement.closest('.data-row');
+    const row = buttonElement.closest('.data-row');
     row.nextElementSibling.remove();  // Remove the corresponding 'text' row
     row.remove();  // Remove the 'title' and 'url' row
 }
