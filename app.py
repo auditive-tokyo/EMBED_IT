@@ -177,10 +177,10 @@ def load_settings():
     try:
         with open('settings.json', 'r') as f:
             settings = json.load(f)  # ファイルからJSONデータを読み込む
-        return settings  # JSONデータをレスポンスとして返す
+        return jsonify(settings)  # jsonifyを使用して安全にJSONレスポンスを返す
     except FileNotFoundError:
         # デフォルトの設定を返す
-        return {
+        return jsonify({
             "scrape_url": {
                 "url": "",
                 "include_elements": "",
@@ -189,11 +189,11 @@ def load_settings():
                 "output_file": "",
                 "site_name": "" 
             }
-        }
+        })
     except json.JSONDecodeError:
-        return 'Error decoding settings file.', 500
+        return jsonify({"error": "Error decoding settings file."}), 500
     except Exception as e:
-        return f'Error loading settings: {str(e)}', 500
+        return jsonify({"error": f"Error loading settings: {str(e)}"}), 500
 
 def run_spider_in_new_process(url, include_elements, exclude_tags, exclude_elements, output_file):
     configure_logging()
