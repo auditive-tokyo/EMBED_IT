@@ -13,45 +13,55 @@ class BaseSpider(Spider):
         self.exclude_tags = exclude_tags.split(',') if exclude_tags else []
         self.exclude_elements = exclude_elements.split(',') if exclude_elements else []
     
+    def _is_text_response(self, response):
+        """Check if the response is text-based."""
+        return 'text' in response.headers['Content-Type'].decode()
+
+    def _clean_soup(self, soup):
+        """Remove excluded tags and elements from soup."""
+        for tag in soup.find_all(self.exclude_tags):
+            tag.decompose()
+        for element in self.exclude_elements:
+            for unwanted_element in soup.select(element):
+                unwanted_element.decompose()
+
+    def _extract_title(self, soup):
+        """Extract title from soup."""
+        title = soup.find('meta', property='og:title')
+        if title:
+            return title['content']
+        return soup.title.string if soup.title else 'No title'
+
+    def _clean_title(self, title):
+        """Remove site_name from title if it exists in settings."""
+        if not os.path.exists(SETTINGS_JSON):
+            return title
+        
+        with open(SETTINGS_JSON, 'r') as f:
+            settings = json.load(f)
+        
+        site_name = settings.get('scrape_url', {}).get('site_name', '')
+        if not site_name or site_name not in title:
+            return title
+        
+        title = title.replace(site_name, '').strip()
+        if title.endswith('-') or title.endswith('|'):
+            title = title[:-1].rstrip()
+        return title
+
     def parse(self, response):
-        # Check if the response is text-based
-        if 'text' in response.headers['Content-Type'].decode():
-            # Parse the response text with BeautifulSoup
-            soup = BeautifulSoup(response.text, 'lxml')
-            for tag in soup.find_all(self.exclude_tags):
-                tag.decompose()
-
-            # Remove unwanted elements
-            for element in self.exclude_elements:
-                unwanted_elements = soup.select(element)
-                for unwanted_element in unwanted_elements:
-                    unwanted_element.decompose()
-
-            # Extract the title
-            title = soup.find('meta', property='og:title')
-            if title:
-                title = title['content']
-            else:
-                title = soup.title.string if soup.title else 'No title'
-                
-            # Remove site_name from title if it exists in settings.json
-            if os.path.exists(SETTINGS_JSON):
-                with open(SETTINGS_JSON, 'r') as f:
-                    settings = json.load(f)
-                    site_name = settings.get('scrape_url', {}).get('site_name', '')
-                    if site_name and site_name in title:
-                        title = title.replace(site_name, '').strip()
-                        # Remove trailing separator (- or |) without regex to avoid backtracking
-                        if title.endswith('-') or title.endswith('|'):
-                            title = title[:-1].rstrip()
-
-            # Convert the BeautifulSoup object back to a Scrapy Response
-            response = TextResponse(url=response.url, body=str(soup), encoding='utf-8')
-            
-            return response, title
-        else:
+        if not self._is_text_response(response):
             print(f'Skipped non-text response: {response.url}\n')
             return None, None
+
+        soup = BeautifulSoup(response.text, 'lxml')
+        self._clean_soup(soup)
+        
+        title = self._extract_title(soup)
+        title = self._clean_title(title)
+        
+        response = TextResponse(url=response.url, body=str(soup), encoding='utf-8')
+        return response, title
 
     def _extract_item(self, response, title, include_elements):
         """Common helper method to extract item from response."""
