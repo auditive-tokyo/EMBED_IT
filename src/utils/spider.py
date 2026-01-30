@@ -41,9 +41,9 @@ class BaseSpider(Spider):
                     site_name = settings.get('scrape_url', {}).get('site_name', '')
                     if site_name and site_name in title:
                         title = title.replace(site_name, '').strip()
-                        # Split into two steps to avoid catastrophic backtracking
-                        title = title.rstrip()
-                        title = re.sub(r'\s*[-|]$', '', title)
+                        # Remove trailing separator (- or |) without regex to avoid backtracking
+                        if title.endswith('-') or title.endswith('|'):
+                            title = title[:-1].rstrip()
 
             # Convert the BeautifulSoup object back to a Scrapy Response
             response = TextResponse(url=response.url, body=str(soup), encoding='utf-8')
